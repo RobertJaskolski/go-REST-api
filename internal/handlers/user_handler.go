@@ -8,7 +8,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
-	"strconv"
 )
 
 type UserHandler struct {
@@ -40,7 +39,7 @@ func (handler *UserHandler) CreateUser(ctx echo.Context) error {
 		return ctx.JSON(http.StatusBadRequest, utils.Envelope{"message": err.Error()})
 	}
 
-	return ctx.JSON(201, entityID)
+	return ctx.JSON(http.StatusCreated, entityID)
 }
 
 func (handler *UserHandler) GetUsers(ctx echo.Context) error {
@@ -48,9 +47,9 @@ func (handler *UserHandler) GetUsers(ctx echo.Context) error {
 }
 
 func (handler *UserHandler) GetUser(ctx echo.Context) error {
-	id, err := strconv.Atoi(ctx.Param("id"))
+	id, err := utils.GetID(ctx)
 	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, "Invalid ID")
+		return ctx.JSON(http.StatusBadRequest, utils.Envelope{"message": err.Error()})
 	}
 
 	user, err := handler.UserRepository.GetOne(context.Background(), id)
@@ -63,9 +62,38 @@ func (handler *UserHandler) GetUser(ctx echo.Context) error {
 }
 
 func (handler *UserHandler) UpdateUser(ctx echo.Context) error {
-	return nil
+	id, err := utils.GetID(ctx)
+	if err != nil {
+		return ctx.JSON(http.StatusBadRequest, utils.Envelope{"message": err.Error()})
+	}
+
+	dto := new(models.UpdateUserDTO)
+
+	err = utils.Validate(ctx, dto)
+	if err != nil {
+		return ctx.JSON(http.StatusBadRequest, utils.Envelope{"message": err.Error()})
+	}
+
+	user, err := handler.UserRepository.Update(context.Background(), id, dto)
+
+	if err != nil {
+		return ctx.JSON(http.StatusBadRequest, utils.Envelope{"message": err.Error()})
+	}
+
+	return ctx.JSON(http.StatusAccepted, user)
 }
 
 func (handler *UserHandler) DeleteUser(ctx echo.Context) error {
-	return nil
+	id, err := utils.GetID(ctx)
+	if err != nil {
+		return ctx.JSON(http.StatusBadRequest, utils.Envelope{"message": err.Error()})
+	}
+
+	err = handler.UserRepository.Delete(context.Background(), id)
+
+	if err != nil {
+		return ctx.JSON(http.StatusBadRequest, utils.Envelope{"message": err.Error()})
+	}
+
+	return ctx.JSON(http.StatusAccepted, utils.Envelope{"success": true})
 }

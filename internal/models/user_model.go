@@ -39,3 +39,13 @@ type CreateUserDTO struct {
 	Password  string         `json:"password"`
 	Role      string         `json:"role" validate:"required,oneof=super_admin owner t3_admin admin user viewer support"`
 }
+
+type UpdateUserDTO struct {
+	Email     NullableString `json:"email"`
+	FirstName NullableString `json:"first_name"`
+	LastName  NullableString `json:"last_name"`
+	TimeZone  NullableString `json:"time_zone"`
+	Mobile    NullableString `json:"mobile"`
+	IsActive  NullableBool   `json:"is_active"`
+	Role      NullableString `json:"role"`
+}
