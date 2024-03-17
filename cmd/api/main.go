@@ -3,6 +3,8 @@ package main
 import (
 	"github.com/RobertJaskolski/go-REST-api/config"
 	"github.com/RobertJaskolski/go-REST-api/internal/api"
+	"github.com/RobertJaskolski/go-REST-api/internal/handlers"
+	"github.com/RobertJaskolski/go-REST-api/internal/repositories"
 	"github.com/RobertJaskolski/go-REST-api/pkg/db"
 	"github.com/joho/godotenv"
 )
@@ -27,8 +29,17 @@ func main() {
 
 	defer dbPool.Close()
 
+	// INITIALIZE REPOSITORIES
+	r := repositories.NewRepositories(dbPool)
+
+	// INITIALIZE HANDLERS
+	h := handlers.NewHandlers(r)
+
 	// CREATE NEW SERVER
 	server := api.NewServer(cfg, dbPool)
+
+	// SETUP ROUTES
+	server.SetupRoutes(h)
 
 	// MIDDLEWARE
 	server.SetupValidator()
