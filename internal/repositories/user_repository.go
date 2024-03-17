@@ -2,13 +2,17 @@ package repositories
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"github.com/RobertJaskolski/go-REST-api/internal/models"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type UserRepositoryInterface interface {
-	Create(ctx, dto *models.CreateUserDTO) (*models.User, error)
+	Create(ctx context.Context, dto *models.CreateUserDTO) (*models.User, error)
+	GetOne(ctx context.Context, id int) (*models.User, error)
 }
 
 type UserRepository struct {
@@ -22,7 +26,6 @@ func NewUserRepository(db *pgxpool.Pool) *UserRepository {
 }
 
 func (r *UserRepository) Create(ctx context.Context, dto *models.CreateUserDTO) (*models.User, error) {
-	query := `INSERT INTO users (email, first_name, last_name, time_zone, mobile, role, is_active, password) VALUES (@Email, @FirstName, @LastName, @TimeZone, @Mobile, @Role, @IsActive, @Password) RETURNING (id, email, first_name, last_name, time_zone, mobile, role, is_active, created_at, modified_at);`
 	args := pgx.NamedArgs{
 		"Email":     dto.Email,
 		"FirstName": dto.FirstName,
@@ -35,9 +38,37 @@ func (r *UserRepository) Create(ctx context.Context, dto *models.CreateUserDTO) 
 	}
 
 	user := new(models.User)
-	err := r.db.QueryRow(ctx, query, args).Scan(&user)
+	err := r.db.QueryRow(ctx, createUserQuery, args).Scan(&user)
+
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) {
+		return nil, errors.New(pgErr.Detail)
+	}
 
 	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
+func (r *UserRepository) GetOne(ctx context.Context, id int) (*models.User, error) {
+	args := pgx.NamedArgs{
+		"ID": id,
+	}
+
+	user := new(models.User)
+	err := r.db.QueryRow(ctx, getUserQuery, args).Scan(&user)
+
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) {
+		return nil, errors.New(pgErr.Detail)
+	}
+
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, errors.New(fmt.Sprintf("User with ID %d not found", id))
+		}
 		return nil, err
 	}
 
