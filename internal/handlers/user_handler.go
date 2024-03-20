@@ -34,12 +34,12 @@ func (handler *UserHandler) CreateUser(ctx echo.Context) error {
 	}
 	dto.Password = string(hashedPassword)
 
-	entityID, err := handler.UserRepository.Create(context.Background(), dto)
+	user, err := handler.UserRepository.Create(context.Background(), dto)
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, utils.Envelope{"message": err.Error()})
 	}
 
-	return ctx.JSON(http.StatusCreated, entityID)
+	return ctx.JSON(http.StatusCreated, user)
 }
 
 func (handler *UserHandler) GetUsers(ctx echo.Context) error {

@@ -33,7 +33,7 @@ func main() {
 	r := repositories.NewRepositories(dbPool)
 
 	// INITIALIZE HANDLERS
-	h := handlers.NewHandlers(r)
+	h := handlers.NewHandlers(cfg, r)
 
 	// CREATE NEW SERVER
 	server := api.NewServer(cfg, dbPool)

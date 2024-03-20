@@ -13,6 +13,7 @@ import (
 type UserRepositoryInterface interface {
 	Create(ctx context.Context, dto *models.CreateUserDTO) (*models.User, error)
 	GetOne(ctx context.Context, id int) (*models.User, error)
+	GetLogged(ctx context.Context, email, password int) (*models.User, error)
 	Update(ctx context.Context, id int, dto *models.UpdateUserDTO) (*models.User, error)
 	Delete(ctx context.Context, id int) error
 }
@@ -77,6 +78,27 @@ func (r *UserRepository) GetOne(ctx context.Context, id int) (*models.User, erro
 	return user, nil
 }
 
+func (r *UserRepository) GetLoggedByEmail(ctx context.Context, email string) (*models.LoggedUser, error) {
+	args := pgx.NamedArgs{"Email": email}
+
+	user := new(models.LoggedUser)
+	err := r.db.QueryRow(ctx, getLoggedQuery, args).Scan(&user)
+
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) {
+		return nil, errors.New(pgErr.Detail)
+	}
+
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, errors.New("user or password are incorrect")
+		}
+		return nil, err
+	}
+
+	return user, nil
+}
+
 func (r *UserRepository) Update(ctx context.Context, id int, dto *models.UpdateUserDTO) (*models.User, error) {
 	args := pgx.NamedArgs{
 		"ID":        id,
@@ -90,7 +112,6 @@ func (r *UserRepository) Update(ctx context.Context, id int, dto *models.UpdateU
 	}
 
 	user := new(models.User)
-	fmt.Println(args)
 	err := r.db.QueryRow(ctx, updateUserQuery, args).Scan(&user)
 
 	var pgErr *pgconn.PgError

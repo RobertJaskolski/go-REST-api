@@ -23,10 +23,17 @@ type User struct {
 	LastName   string         `json:"last_name"`
 	TimeZone   NullableString `json:"time_zone"`
 	Mobile     NullableString `json:"mobile"`
-	Role       string         `json:"role"`
+	Role       UserRoleEnum   `json:"role"`
 	IsActive   bool           `json:"is_active"`
 	CreatedAt  time.Time      `json:"created_at"`
 	ModifiedAt time.Time      `json:"modified_at"`
+}
+
+type LoggedUser struct {
+	ID       int          `json:"id"`
+	Email    string       `json:"email"`
+	Role     UserRoleEnum `json:"role"`
+	Password string       `json:"password"`
 }
 
 type CreateUserDTO struct {
@@ -37,7 +44,7 @@ type CreateUserDTO struct {
 	Mobile    NullableString `json:"mobile"`
 	IsActive  bool           `json:"is_active" validate:"required"`
 	Password  string         `json:"password"`
-	Role      string         `json:"role" validate:"required,oneof=super_admin owner t3_admin admin user viewer support"`
+	Role      UserRoleEnum   `json:"role" validate:"required,oneof=super_admin owner t3_admin admin user viewer support"`
 }
 
 type UpdateUserDTO struct {

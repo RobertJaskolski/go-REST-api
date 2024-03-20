@@ -16,6 +16,10 @@ type Config struct {
 		Password string
 		Database string
 	}
+	JWT struct {
+		Secret        string
+		RefreshSecret string
+	}
 }
 
 func NewConfig() *Config {
@@ -32,6 +36,10 @@ func (cfg *Config) Load() error {
 	flag.StringVar(&cfg.DB.User, "db_user", os.Getenv("DB_USER"), "Database User")
 	flag.StringVar(&cfg.DB.Password, "db_password", os.Getenv("DB_PASSWORD"), "Database Password")
 	flag.StringVar(&cfg.DB.Database, "db_database", os.Getenv("DB_DATABASE"), "Database Name")
+
+	// JWT Config
+	cfg.JWT.Secret = os.Getenv("JWT_SECRET")
+	cfg.JWT.Secret = os.Getenv("JWT_REFRESH_SECRET")
 
 	// Parse the flags
 	flag.Parse()
