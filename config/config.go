@@ -39,7 +39,7 @@ func (cfg *Config) Load() error {
 
 	// JWT Config
 	cfg.JWT.Secret = os.Getenv("JWT_SECRET")
-	cfg.JWT.Secret = os.Getenv("JWT_REFRESH_SECRET")
+	cfg.JWT.RefreshSecret = os.Getenv("JWT_REFRESH_SECRET")
 
 	// Parse the flags
 	flag.Parse()

@@ -16,7 +16,7 @@ func SetupUserRoutes(s *Server, h *handlers.Handlers) {
 	g := s.router.Group("/user")
 
 	// AUTH MIDDLEWARE
-	g.Use()
+	g.Use(JWTAuthorizationMiddleware)
 
 	// CRUD OPERATIONS FOR USER
 	g.POST("/", h.UserHandler.CreateUser)

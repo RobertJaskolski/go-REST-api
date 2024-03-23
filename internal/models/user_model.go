@@ -33,6 +33,7 @@ type LoggedUser struct {
 	ID       int          `json:"id"`
 	Email    string       `json:"email"`
 	Role     UserRoleEnum `json:"role"`
+	IsActive bool         `json:"is_active"`
 	Password string       `json:"password"`
 }
 

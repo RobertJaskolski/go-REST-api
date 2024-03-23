@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/RobertJaskolski/go-REST-api/internal/utils"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -35,4 +36,36 @@ func (s *Server) SetupValidator() {
 	s.router.Validator = &CustomValidator{validator: validator.New()}
 }
 
-// NEXT ...
+// JWT AUTH MIDDLEWARE
+
+func JWTAuthorizationMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		token := c.Request().Header.Get("Authorization")
+
+		if token == "" {
+			return echo.NewHTTPError(http.StatusUnauthorized, utils.Envelope{
+				"message": "Token is required",
+			})
+		}
+
+		token = strings.Replace(token, "Bearer ", "", 1)
+		userClaims, err := utils.ParseAccessToken(token)
+		if err != nil {
+			errMsg := "Token is invalid"
+			if strings.Contains(err.Error(), "token is expired") {
+				errMsg = "Token is expired"
+			}
+			return echo.NewHTTPError(http.StatusUnauthorized, utils.Envelope{
+				"message": errMsg,
+			})
+		}
+
+		if userClaims.StandardClaims.Valid() != nil {
+			return echo.NewHTTPError(http.StatusUnauthorized, utils.Envelope{
+				"message": "Token is invalid",
+			})
+		}
+
+		return next(c)
+	}
+}
